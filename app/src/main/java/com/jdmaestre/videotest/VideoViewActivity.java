@@ -2,6 +2,7 @@ package com.jdmaestre.videotest;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,8 @@ public class VideoViewActivity extends Activity {
     WebView webView;
     VideoView videoView;
 
+    String videoLink = null;
+
     VideoViewCustom videoViewCustom;
 
     FrameLayout thisLayout;
@@ -26,6 +29,12 @@ public class VideoViewActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.video_view);
+
+
+        videoLink = getIntent().getStringExtra("videoLink");
+        if (videoLink == null){
+            videoLink = "https://archive.org/download/popeye_patriotic_popeye/popeye_patriotic_popeye_512kb.mp4";
+        }
 
         //webView = (WebView) findViewById(R.id.webView);
         videoView = (VideoView) findViewById(R.id.videoViewTest);
@@ -40,7 +49,7 @@ public class VideoViewActivity extends Activity {
         //webView.loadData("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/n-ANUWEjIV8?rel=0\" frameborder=\"0\" allowfullscreen></iframe>",
         //        "text/html", "utf-8");
 
-        String vidAddress = "https://archive.org/download/popeye_patriotic_popeye/popeye_patriotic_popeye_512kb.mp4";
+        String vidAddress = videoLink;
         Uri vidUri = Uri.parse(vidAddress);
 
         videoView.setVideoURI(vidUri);

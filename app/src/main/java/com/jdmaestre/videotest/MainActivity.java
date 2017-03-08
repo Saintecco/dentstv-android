@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
         public void onItemClick(AdapterView parent, View v, int position, long id) {
             // Do something in response to the click
             Intent intent = new Intent(getApplicationContext(), VideoViewActivity.class);
+            intent.putExtra("videoLink", videoInfos[position].getLink());
             startActivity(intent);
         }
     };

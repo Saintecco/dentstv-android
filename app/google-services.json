@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "896748486773",
+    "firebase_url": "https://dentstv-b5c20.firebaseio.com",
+    "project_id": "dentstv-b5c20",
+    "storage_bucket": "dentstv-b5c20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:896748486773:android:6c44bd04fd742383",
+        "android_client_info": {
+          "package_name": "com.dents.dentstv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "896748486773-h2rgpqkoaqqi4bvoksjgmnbo9f59kkii.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqIxp7nCaLVcXoC2kYacYWGMp4yFsznao"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
