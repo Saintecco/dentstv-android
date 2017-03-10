@@ -1,9 +1,11 @@
 package com.jdmaestre.videotest;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -24,6 +26,7 @@ public class VideoViewActivity extends Activity {
     VideoViewCustom videoViewCustom;
 
     FrameLayout thisLayout;
+    ProgressDialog progDailog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +47,29 @@ public class VideoViewActivity extends Activity {
         //thisLayout.removeView(videoView);
         thisLayout.addView(videoViewCustom);
         videoViewCustom.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        //WebSettings webSettings = webView.getSettings();
-        //webSettings.setJavaScriptEnabled(true);
-        //webView.loadData("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/n-ANUWEjIV8?rel=0\" frameborder=\"0\" allowfullscreen></iframe>",
-        //        "text/html", "utf-8");
+
 
         String vidAddress = videoLink;
         Uri vidUri = Uri.parse(vidAddress);
 
         videoView.setVideoURI(vidUri);
         videoView.start();
+        progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
+
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                progDailog.dismiss();
+            }
+        });
+
+        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                progDailog.dismiss();
+                return false;
+            }
+        });
 
         MediaController vidControl = new MediaController(this);
         videoView.setMediaController(vidControl);
