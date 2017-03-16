@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 import android.webkit.WebView;
@@ -18,10 +19,13 @@ import android.widget.VideoView;
 
 public class VideoViewActivity extends Activity {
 
-    WebView webView;
+    private final static String TAG = VideoViewActivity.class.getSimpleName();
+
     VideoView videoView;
 
     String videoLink = null;
+    int position;
+    boolean isWaitingDialogOnScreen = false;
 
     VideoViewCustom videoViewCustom;
 
@@ -32,6 +36,7 @@ public class VideoViewActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.video_view);
+        //position = savedInstanceState.getInt("Position");
 
 
         videoLink = getIntent().getStringExtra("videoLink");
@@ -39,12 +44,10 @@ public class VideoViewActivity extends Activity {
             videoLink = "https://archive.org/download/popeye_patriotic_popeye/popeye_patriotic_popeye_512kb.mp4";
         }
 
-        //webView = (WebView) findViewById(R.id.webView);
         videoView = (VideoView) findViewById(R.id.videoViewTest);
         thisLayout = (FrameLayout) findViewById(R.id.activity_main);
         videoViewCustom = new VideoViewCustom(this);
 
-        //thisLayout.removeView(videoView);
         thisLayout.addView(videoViewCustom);
         videoViewCustom.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
@@ -54,12 +57,14 @@ public class VideoViewActivity extends Activity {
 
         videoView.setVideoURI(vidUri);
         videoView.start();
-        progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
+        startWaitingDialog();
+
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-                progDailog.dismiss();
+                stopWaitingDialog();
+
             }
         });
 
@@ -76,32 +81,53 @@ public class VideoViewActivity extends Activity {
         vidControl.setAnchorView(videoView);
     }
 
+
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
+    protected void onPause() {
+        super.onPause();
+        position = videoView.getCurrentPosition();
+        videoView.pause();
 
-        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-        int width = metrics.widthPixels;
-        int height = metrics.heightPixels;
+    }
 
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        videoView.seekTo(position);
+        videoView.start();
+        startWaitingDialog();
+    }
 
-            videoViewCustom.setDimensions(width, height);
-            videoViewCustom.getHolder().setFixedSize(width, height);
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt("Position", videoView.getCurrentPosition());
+        Log.v(TAG, "Pauset");
+    }
 
-        } else {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        int position = savedInstanceState.getInt("Position");
+        videoView.seekTo(position);
+        videoView.pause();
+        //startWaitingDialog();
+        Log.v(TAG, "Startt: " + String.valueOf(position) );
+    }
 
-            videoViewCustom.setDimensions(width, height);
-            videoViewCustom.getHolder().setFixedSize(width, height);
+//            android:configChanges="keyboardHidden|orientation|screenSize"
 
+    private void startWaitingDialog(){
+        if (isWaitingDialogOnScreen == false){
+            progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
+            isWaitingDialogOnScreen = true;
         }
     }
 
+    private void stopWaitingDialog(){
 
+        progDailog.dismiss();
+        isWaitingDialogOnScreen = false;
+
+    }
 }

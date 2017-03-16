@@ -20,6 +20,18 @@ public class VideoDataModel extends Observable{
 
     private static final String TAG = VideoDataModel.class.getSimpleName();
 
+    private static VideoDataModel instance = null;
+
+    public static VideoDataModel getInstance(){
+        if (instance == null){
+            instance = new VideoDataModel();
+        }
+        return instance;
+    }
+
+    private ArrayList<String> sectionsList;
+    private ArrayList<VideoInfo> videoInfos = new ArrayList<VideoInfo>();
+
     public void getVideosFromStaticData(Observer observer){
 
         VideoInfo video1 = new VideoInfo("Video 1", "Muela del juicio",
@@ -64,4 +76,56 @@ public class VideoDataModel extends Observable{
         });
 
     }
+
+    public void getSections(Observer observer){
+        addObserver(observer);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("videosDataBase");
+        sectionsList = new ArrayList<String>();
+
+        // Read from database
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataBase) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+
+                DataSnapshot dataSnapshot = dataBase.child("categorias");
+                String section = "";
+                Iterable<DataSnapshot> sections = dataSnapshot.getChildren();
+                for (DataSnapshot snapshot : sections){
+                    DataSnapshot child = snapshot.child("name");
+                    section = child.getValue(String.class);
+                    sectionsList.add(section);
+                    Log.d(TAG, "Value is: " + section);
+                }
+
+                dataSnapshot = dataBase.child("videos");
+                VideoInfo video = null;
+                Iterable<DataSnapshot> videos = dataSnapshot.getChildren();
+                for (DataSnapshot snapshot : videos){
+                    video = snapshot.getValue(VideoInfo.class);
+                    videoInfos.add(video);
+                    Log.d(TAG, "Value is: " + video.getName());
+                }
+
+                setChanged();
+                notifyObservers();
+                //VideoInfo value = dataSnapshot.child("video_1").getValue(VideoInfo.class);
+                //Log.d(TAG, "Value is: " + video.getLink());
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+    }
+
+    public ArrayList<String> getSectionsList() {
+        return sectionsList;
+    }
+
 }
