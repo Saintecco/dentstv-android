@@ -31,7 +31,7 @@ import java.util.Observer;
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment implements Observer{
+public class NavigationDrawerFragment extends Fragment{
 
     /**
      * Remember the position of the selected item.
@@ -105,7 +105,10 @@ public class NavigationDrawerFragment extends Fragment implements Observer{
             }
         });
 
-        videoDataModel.getSections(this);
+        if (videoDataModel.isDataLoaded()){
+            setAdapterToNavigationDrawer();
+        }
+
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
     }
@@ -148,7 +151,7 @@ public class NavigationDrawerFragment extends Fragment implements Observer{
                     return;
                 }
 
-                getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+                //getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
 
             @Override
@@ -167,7 +170,7 @@ public class NavigationDrawerFragment extends Fragment implements Observer{
                     sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
                 }
 
-                getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+                //getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
         };
 
@@ -270,8 +273,7 @@ public class NavigationDrawerFragment extends Fragment implements Observer{
         return getActivity().getActionBar();
     }
 
-    @Override
-    public void update(Observable observable, Object o) {
+    private void setAdapterToNavigationDrawer() {
         sections = videoDataModel.getSectionsList();
         int sectionsCount = sections.size();
         String[] sectionsString = new String[sectionsCount];

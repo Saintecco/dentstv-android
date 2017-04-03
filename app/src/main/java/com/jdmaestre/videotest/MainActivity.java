@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements Observer{
         progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
 
         videoListView = (ListView) findViewById(R.id.videoListView);
-        videoDataModel.getVideosFromFirebase(this);
+        //videoDataModel.getVideosFromFirebase(this);
         //Update Observer do the job
 
     }

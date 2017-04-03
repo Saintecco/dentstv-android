@@ -1,12 +1,24 @@
 package com.jdmaestre.videotest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.GridLayout;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 
 /**
@@ -24,10 +36,15 @@ public class VideoListFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
+    private String category;
     private String mParam2;
 
+    private VideoDataModel videoDataModel = VideoDataModel.getInstance();
+
     private OnFragmentInteractionListener mListener;
+
+    private GridView videosInfo_GridLLayout;
+    ArrayList<VideoInfo> videos;
 
     public VideoListFragment() {
         // Required empty public constructor
@@ -37,15 +54,15 @@ public class VideoListFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
+     * @param category Parameter 1.
      * @param param2 Parameter 2.
      * @return A new instance of fragment VideoListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static VideoListFragment newInstance(String param1, String param2) {
+    public static VideoListFragment newInstance(String category, String param2) {
         VideoListFragment fragment = new VideoListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM1, category);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
@@ -55,16 +72,46 @@ public class VideoListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
+            category = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
+
+        videos = new ArrayList<VideoInfo>();
+        for (int n=0; n<videoDataModel.getVideoInfos().size(); n++){
+            if (videoDataModel.getVideoInfos().get(n).getCategory().equals(category)){
+                videos.add(videoDataModel.getVideoInfos().get(n));
+            }
+
+            if (videoDataModel.getVideoInfos().get(n).getCategory_2().equals(category)){
+                videos.add(videoDataModel.getVideoInfos().get(n));
+            }
+        }
+
+        Toast.makeText(getActivity(), category, Toast.LENGTH_SHORT).show();
+        videoDataModel.getVideoInfos().size();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_video_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_video_list, container, false);
+
+        videosInfo_GridLLayout = (GridView) view.findViewById(R.id.videosInfo_gridLayout);
+        VideosAdapter videosAdapter = new VideosAdapter();
+        videosInfo_GridLLayout.setAdapter(videosAdapter);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+
+        videosInfo_GridLLayout.setColumnWidth(width/2);
+
+        return view;
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -77,12 +124,12 @@ public class VideoListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
+        /*if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
-        }
+        }*/
     }
 
     @Override
@@ -104,5 +151,56 @@ public class VideoListFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private class VideosAdapter extends BaseAdapter{
+
+        ImageView videoPreviewImage;
+        TextView videoName;
+
+        @Override
+        public View getView(final int i, View view, ViewGroup viewGroup) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            final VideoInfo video = videos.get(i);
+            View videoInfoView;
+            videoInfoView = inflater.inflate(R.layout.custom_video_gridlayout, viewGroup, false);
+
+            videoPreviewImage = (ImageView) videoInfoView.findViewById(R.id.videoPreview_imageView);
+            videoName = (TextView) videoInfoView.findViewById(R.id.videoName_textView);
+            //videoPreviewImage.setImageURI(Uri.parse(videos.get(i).getImage()));
+            Picasso.with(getActivity()).load(video.getImage()).into(videoPreviewImage);
+            videoName.setText(video.getName());
+
+            // Set video name
+            String name = video.getName();
+            videoName.setText(name);
+
+            // Set video description
+            videoName.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getActivity(), VideoViewActivity.class);
+                    intent.putExtra("videoLink", video.getLink());
+                    startActivity(intent);
+                }
+            });
+            //Toast.makeText(getActivity(), videos.get(i).getImage(), Toast.LENGTH_SHORT).show();
+            return videoInfoView;
+        }
+
+        @Override
+        public int getCount() {
+            return videos.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
     }
 }

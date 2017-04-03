@@ -29,10 +29,16 @@ public class VideoDataModel extends Observable{
         return instance;
     }
 
-    private ArrayList<String> sectionsList;
+    private ArrayList<String> sectionsList = new ArrayList<String>();
     private ArrayList<VideoInfo> videoInfos = new ArrayList<VideoInfo>();
 
-    public void getVideosFromStaticData(Observer observer){
+    public boolean isDataLoaded() {
+        return isDataLoaded;
+    }
+
+    private boolean isDataLoaded = false;
+
+    private void getVideosFromStaticData(Observer observer){
 
         VideoInfo video1 = new VideoInfo("Video 1", "Muela del juicio",
                 "https://dl.dropbox.com/s/k5jhdvvfmsjff5f/Pericoronaritis%20y%20extracci%C3%B3n%20de%20las%20muelas%20del%20juicio%20%C2%A9.mp4");
@@ -40,7 +46,7 @@ public class VideoDataModel extends Observable{
         VideoInfo[] videoArray = {video1};
     }
 
-    public void getVideosFromFirebase(Observer observer){
+    private void getVideosFromFirebase(Observer observer){
 
         addObserver(observer);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -77,11 +83,10 @@ public class VideoDataModel extends Observable{
 
     }
 
-    public void getSections(Observer observer){
+    public void loadData(Observer observer){
         addObserver(observer);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("videosDataBase");
-        sectionsList = new ArrayList<String>();
 
         // Read from database
         myRef.addValueEventListener(new ValueEventListener() {
@@ -90,23 +95,27 @@ public class VideoDataModel extends Observable{
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
 
-                DataSnapshot dataSnapshot = dataBase.child("categorias");
-                String section = "";
-                Iterable<DataSnapshot> sections = dataSnapshot.getChildren();
-                for (DataSnapshot snapshot : sections){
-                    DataSnapshot child = snapshot.child("name");
-                    section = child.getValue(String.class);
-                    sectionsList.add(section);
-                    Log.d(TAG, "Value is: " + section);
-                }
+                if (!isDataLoaded){
+                    DataSnapshot dataSnapshot = dataBase.child("categorias");
+                    String section = "";
+                    Iterable<DataSnapshot> sections = dataSnapshot.getChildren();
+                    for (DataSnapshot snapshot : sections){
+                        DataSnapshot child = snapshot.child("name");
+                        section = child.getValue(String.class);
+                        sectionsList.add(section);
+                        Log.d(TAG, "Value is: " + section);
+                    }
 
-                dataSnapshot = dataBase.child("videos");
-                VideoInfo video = null;
-                Iterable<DataSnapshot> videos = dataSnapshot.getChildren();
-                for (DataSnapshot snapshot : videos){
-                    video = snapshot.getValue(VideoInfo.class);
-                    videoInfos.add(video);
-                    Log.d(TAG, "Value is: " + video.getName());
+                    dataSnapshot = dataBase.child("videos");
+                    VideoInfo video = null;
+                    Iterable<DataSnapshot> videos = dataSnapshot.getChildren();
+                    for (DataSnapshot snapshot : videos){
+                        video = snapshot.getValue(VideoInfo.class);
+                        videoInfos.add(video);
+                        Log.d(TAG, "Value is: " + video.getName());
+                    }
+
+                    isDataLoaded = true;
                 }
 
                 setChanged();
@@ -122,6 +131,10 @@ public class VideoDataModel extends Observable{
                 Log.w(TAG, "Failed to read value.", error.toException());
             }
         });
+    }
+
+    public ArrayList<VideoInfo> getVideoInfos() {
+        return videoInfos;
     }
 
     public ArrayList<String> getSectionsList() {
