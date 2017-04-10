@@ -2,6 +2,8 @@ package com.jdmaestre.videotest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -107,8 +109,19 @@ public class VideoListFragment extends Fragment {
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int height = displayMetrics.heightPixels;
         int width = displayMetrics.widthPixels;
+        Double horizontalSpacing = convertDpToPixel(8.0, getActivity());
+        int horizontalspacingINT = horizontalSpacing.intValue();
 
-        videosInfo_GridLLayout.setColumnWidth(width/2);
+        // config 1 column form portrait 2 for landscape
+        int orientation = getActivity().getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE){
+            videosInfo_GridLLayout.setColumnWidth(width/2 - horizontalspacingINT/2);
+            videosInfo_GridLLayout.setHorizontalSpacing(horizontalspacingINT-2);
+        }else{
+            videosInfo_GridLLayout.setColumnWidth(width);
+        }
+
+
 
         return view;
 
@@ -175,7 +188,7 @@ public class VideoListFragment extends Fragment {
             String name = video.getName();
             videoName.setText(name);
 
-            // Set video description
+            // Set video play
             videoName.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -184,6 +197,16 @@ public class VideoListFragment extends Fragment {
                     startActivity(intent);
                 }
             });
+
+            videoPreviewImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getActivity(), VideoViewActivity.class);
+                    intent.putExtra("videoLink", video.getLink());
+                    startActivity(intent);
+                }
+            });
+
             //Toast.makeText(getActivity(), videos.get(i).getImage(), Toast.LENGTH_SHORT).show();
             return videoInfoView;
         }
@@ -202,5 +225,19 @@ public class VideoListFragment extends Fragment {
         public long getItemId(int i) {
             return 0;
         }
+    }
+
+    private float convertPixelsToDp(float px, Context context){
+        Resources resources = context.getResources();
+        DisplayMetrics metrics = resources.getDisplayMetrics();
+        float dp = px / ((float)metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return dp;
+    }
+
+    private  double convertDpToPixel(double dp, Context context){
+        Resources resources = context.getResources();
+        DisplayMetrics metrics = resources.getDisplayMetrics();
+        double px = dp * ((float)metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return px;
     }
 }

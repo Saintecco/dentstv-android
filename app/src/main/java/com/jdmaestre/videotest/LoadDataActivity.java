@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.Observable;
@@ -17,22 +18,26 @@ import java.util.Observer;
 
 public class LoadDataActivity extends Activity implements Observer {
 
-    ProgressDialog progDailog;
-    boolean isWaitingDialogOnScreen = false;
+    //ProgressDialog progDailog;
     private VideoDataModel videoDataModel = VideoDataModel.getInstance();
 
     Button tryAgainButton;
     Button exitButton;
     ImageView logoImageView;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load_data);
 
+        //Hide ActionBar
+        //getActionBar().hide();
+
         tryAgainButton = (Button) findViewById(R.id.tryAgain_LoadData_Button);
         exitButton = (Button) findViewById(R.id.exit_LoadData_button);
         logoImageView = (ImageView) findViewById(R.id.loadData_imageView);
+        progressBar = (ProgressBar) findViewById(R.id.loadData_progessBar);
 
         loadData();
 
@@ -54,7 +59,7 @@ public class LoadDataActivity extends Activity implements Observer {
 
     private void loadData() {
         if (isNetworkAvailable()){
-            startWaitingDialog();
+            progressBar.setVisibility(View.VISIBLE);
             videoDataModel.loadData(this);
         }else{
             Toast.makeText(getApplication(),"No esta conectado a internet", Toast.LENGTH_LONG).show();
@@ -64,23 +69,10 @@ public class LoadDataActivity extends Activity implements Observer {
         }
     }
 
-    private void startWaitingDialog(){
-        if (isWaitingDialogOnScreen == false){
-            progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
-            isWaitingDialogOnScreen = true;
-        }
-    }
-
-    private void stopWaitingDialog(){
-
-        progDailog.dismiss();
-        isWaitingDialogOnScreen = false;
-
-    }
 
     @Override
     public void update(Observable observable, Object o) {
-        stopWaitingDialog();
+        progressBar.setVisibility(View.INVISIBLE);
         Intent intent = new Intent(getApplication(), Main2Activity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

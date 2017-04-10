@@ -4,6 +4,7 @@ package com.jdmaestre.videotest;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.graphics.Color;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -84,6 +85,8 @@ public class NavigationDrawerFragment extends Fragment{
 
         // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedPosition);
+
+
     }
 
     @Override
@@ -91,6 +94,8 @@ public class NavigationDrawerFragment extends Fragment{
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
+
+
     }
 
     @Override
@@ -170,6 +175,7 @@ public class NavigationDrawerFragment extends Fragment{
                     sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
                 }
 
+                //mDrawerListView.getChildAt(1).setBackgroundColor(Color.WHITE);
                 //getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
         };
