@@ -7,11 +7,17 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -21,6 +27,7 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 /**
@@ -46,7 +53,10 @@ public class VideoListFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     private GridView videosInfo_GridLLayout;
+    ArrayList<VideoInfo> videosDataAdapter;
     ArrayList<VideoInfo> videos;
+
+    VideosAdapter videosAdapter = new VideosAdapter();
 
     public VideoListFragment() {
         // Required empty public constructor
@@ -81,18 +91,23 @@ public class VideoListFragment extends Fragment {
 
 
         videos = new ArrayList<VideoInfo>();
+        videosDataAdapter = new ArrayList<VideoInfo>();
         for (int n=0; n<videoDataModel.getVideoInfos().size(); n++){
             if (videoDataModel.getVideoInfos().get(n).getCategory().equals(category)){
                 videos.add(videoDataModel.getVideoInfos().get(n));
             }
 
-            if (videoDataModel.getVideoInfos().get(n).getCategory_2().equals(category)){
-                videos.add(videoDataModel.getVideoInfos().get(n));
+            if (videoDataModel.getVideoInfos().get(n).getCategory_2() != null){
+                if (videoDataModel.getVideoInfos().get(n).getCategory_2().equals(category)){
+                    videos.add(videoDataModel.getVideoInfos().get(n));
+                }
             }
         }
 
-        Toast.makeText(getActivity(), category, Toast.LENGTH_SHORT).show();
-        videoDataModel.getVideoInfos().size();
+        videosDataAdapter.addAll(videos);
+
+        //Toast.makeText(getActivity(), category, Toast.LENGTH_SHORT).show();
+        //videoDataModel.getVideoInfos().size();
     }
 
     @Override
@@ -101,9 +116,42 @@ public class VideoListFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_video_list, container, false);
 
+        final EditText searchEditText = (EditText) view.findViewById(R.id.searchVideo_EditText);
+
+
         videosInfo_GridLLayout = (GridView) view.findViewById(R.id.videosInfo_gridLayout);
-        VideosAdapter videosAdapter = new VideosAdapter();
         videosInfo_GridLLayout.setAdapter(videosAdapter);
+
+        //Set search
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String text = searchEditText.getText().toString().toLowerCase(Locale.getDefault());
+                videosAdapter.filter(text);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        //Hide keyboard on enter
+        searchEditText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                    InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+                }
+                return false;
+            }
+        });
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -112,7 +160,7 @@ public class VideoListFragment extends Fragment {
         Double horizontalSpacing = convertDpToPixel(8.0, getActivity());
         int horizontalspacingINT = horizontalSpacing.intValue();
 
-        // config 1 column form portrait 2 for landscape
+        // Config 1 column form portrait 2 for landscape
         int orientation = getActivity().getResources().getConfiguration().orientation;
         if (orientation == Configuration.ORIENTATION_LANDSCAPE){
             videosInfo_GridLLayout.setColumnWidth(width/2 - horizontalspacingINT/2);
@@ -170,19 +218,29 @@ public class VideoListFragment extends Fragment {
 
         ImageView videoPreviewImage;
         TextView videoName;
+        ImageView playButton;
 
         @Override
         public View getView(final int i, View view, ViewGroup viewGroup) {
             LayoutInflater inflater = getActivity().getLayoutInflater();
-            final VideoInfo video = videos.get(i);
+            final VideoInfo video = videosDataAdapter.get(i);
             View videoInfoView;
             videoInfoView = inflater.inflate(R.layout.custom_video_gridlayout, viewGroup, false);
 
             videoPreviewImage = (ImageView) videoInfoView.findViewById(R.id.videoPreview_imageView);
             videoName = (TextView) videoInfoView.findViewById(R.id.videoName_textView);
-            //videoPreviewImage.setImageURI(Uri.parse(videos.get(i).getImage()));
-            Picasso.with(getActivity()).load(video.getImage()).into(videoPreviewImage);
+            playButton = (ImageView) videoInfoView.findViewById(R.id.playVideoButton);
+
+            if (video.getImage() != null){
+                Picasso.with(getActivity()).load(video.getImage()).into(videoPreviewImage);
+            }else{
+                Picasso.with(getActivity()).load("https://firebasestorage.googleapis.com/v0/b/dentstv-b5c20.appspot.com/o/thump2.jpg?alt=media&token=24c0ab1d-472b-429d-af25-2cba113fa66c").into(videoPreviewImage);
+            }
+
             videoName.setText(video.getName());
+
+            //Set button position
+            setOnCentre(playButton, videoPreviewImage);
 
             // Set video name
             String name = video.getName();
@@ -213,7 +271,7 @@ public class VideoListFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return videos.size();
+            return videosDataAdapter.size();
         }
 
         @Override
@@ -224,6 +282,23 @@ public class VideoListFragment extends Fragment {
         @Override
         public long getItemId(int i) {
             return 0;
+        }
+
+        // Filter Class
+        public void filter(String charText) {
+            charText = charText.toLowerCase(Locale.getDefault());
+            videosDataAdapter.clear();
+            if (charText.length() == 0) {
+                videosDataAdapter.addAll(videos);
+            } else {
+                for (VideoInfo video : videos) {
+                    if (video.getName().toLowerCase(Locale.getDefault())
+                            .contains(charText)) {
+                        videosDataAdapter.add(video);
+                    }
+                }
+            }
+            notifyDataSetChanged();
         }
     }
 
@@ -239,5 +314,17 @@ public class VideoListFragment extends Fragment {
         DisplayMetrics metrics = resources.getDisplayMetrics();
         double px = dp * ((float)metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
         return px;
+    }
+
+    private void setOnCentre(View toCentre, View onCentre){
+        float onCetreWidth = onCentre.getWidth();
+        float onCetreHeight = onCentre.getHeight();
+
+        float toCentreWidth = toCentre.getWidth();
+        float toCentreHeight = toCentre.getHeight();
+
+        toCentre.setX(onCetreWidth/2 - toCentreWidth/2);
+        toCentre.setY(onCetreHeight/2 - toCentreHeight/2);
+
     }
 }

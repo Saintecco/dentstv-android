@@ -60,7 +60,7 @@ public class LoadDataActivity extends Activity implements Observer {
     private void loadData() {
         if (isNetworkAvailable()){
             progressBar.setVisibility(View.VISIBLE);
-            videoDataModel.loadData(this);
+            videoDataModel.loadData2(this);
         }else{
             Toast.makeText(getApplication(),"No esta conectado a internet", Toast.LENGTH_LONG).show();
             tryAgainButton.setVisibility(View.VISIBLE);
