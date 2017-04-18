@@ -234,7 +234,7 @@ public class VideoListFragment extends Fragment {
             if (video.getImage() != null){
                 Picasso.with(getActivity()).load(video.getImage()).into(videoPreviewImage);
             }else{
-                Picasso.with(getActivity()).load("https://firebasestorage.googleapis.com/v0/b/dentstv-b5c20.appspot.com/o/thump2.jpg?alt=media&token=24c0ab1d-472b-429d-af25-2cba113fa66c").into(videoPreviewImage);
+                Picasso.with(getActivity()).load("https://firebasestorage.googleapis.com/v0/b/dentstv-b5c20.appspot.com/o/crop.png?alt=media&token=f0e01a49-8ebe-4b2c-af67-6686fc792939").into(videoPreviewImage);
             }
 
             videoName.setText(video.getName());

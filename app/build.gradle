@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            storeFile file('/Users/jdmaestre/AndroidStudioProjects/Dents.jks')
+            keyAlias 'DentsTv'
+            keyPassword 'saludtec235711'
+            storePassword 'saludtec235711'
+        }
+    }
     compileSdkVersion 24
     buildToolsVersion '25.0.0'
     defaultConfig {
@@ -15,6 +23,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
     productFlavors {
