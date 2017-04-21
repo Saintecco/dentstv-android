@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -32,8 +34,8 @@ import java.util.List;
 
 public class BuyingActivity extends Activity implements IabBroadcastReceiver.IabBroadcastListener{
 
-    public static String TAG = BuyingActivity.class.getSimpleName();
-    private static String SKU_VIDEOS = "unlock_videos";
+    public static final String TAG = BuyingActivity.class.getSimpleName();
+    private static final String SKU_VIDEOS = "unlock_videos";
     IInAppBillingService mService;
     IabHelper mHelper;
     // Provides purchase notification while this app is running
@@ -48,10 +50,6 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
 
         buySuscriptionButton = (Button) findViewById(R.id.buySuscriptionButton);
 
-        /*Intent serviceIntent =
-                new Intent("com.android.vending.billing.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.android.vending");
-        bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);*/
 
         String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgRl230zd6MYQOJwRZeMDV9J01dlbJhdyObvppFhvF3kw9OsCiV3aW7u1QEWL4XLgmZqi8InOO0h+wxb9Muxwgcw4LinS3T0wtjs7XVlGJhaBvr/TOfUR+CsURJXSzYQo26ZtN52yZm+/DPMafqcnvSlW3csHwzL9eCmyOpo9mOXlHq/rXTD4W0qWbRXr1KijmcMs8FArSlFsu11yIF1lTOHK1TWu0Yt1XQ/AJ5tMBECEH+6pXdggPnOUvhVLaWA9y1tYAi9Hs0YoGSvNjGTe7tFrBHKRcHth6uuJX7ki497RH5BB70oOOtBmXfLQ486uW2WPQ9PlpSP45EsvbQW5BwIDAQAB";
 
@@ -106,6 +104,8 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 }
             }
         });
+
+
     }
 
     IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
@@ -123,30 +123,21 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
             }
 
             Purchase premiumPurchase = inventory.getPurchase("unlock_videos");
+
             if (premiumPurchase != null){
+                Toast.makeText(getApplicationContext(),String.valueOf(premiumPurchase.getPurchaseState()) ,Toast.LENGTH_LONG).show();
                 goToApp();
             }
 
         }
     };
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mHelper != null){
-            try {
-                mHelper.dispose();
-            } catch (IabHelper.IabAsyncInProgressException e) {
-                e.printStackTrace();
-            }
-        }
-        mHelper = null;
-    }
+
 
     private void comprarHelper(){
         try {
             mHelper.launchPurchaseFlow(this, SKU_VIDEOS, 10001,
-                    mPurchaseFinishedListener, "bGoa+V7g/yqDXvKRqq+JTFn4uQZbPiQJo4pf9RzJ");
+                    mPurchaseFinishedListener, "compra desde la app");
         } catch (IabHelper.IabAsyncInProgressException e) {
             e.printStackTrace();
         }
@@ -160,7 +151,8 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 //Log.d(TAG, "Error purchasing: " + result);
                 return;
             }
-            else if (purchase.getSku().equals(SKU_VIDEOS)) {
+
+            if (purchase.getSku().equals(SKU_VIDEOS)) {
                 // consume the gas and update the UI
                 goToApp();
                 Toast.makeText(getApplicationContext(), "Compra realizadad con exito", Toast.LENGTH_LONG).show();
@@ -168,37 +160,29 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
         }
     };
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
+
+        // Pass on the activity result to the helper for handling
+        if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+        else {
+            //Log.d(TAG, "onActivityResult handled by IABUtil.");
+        }
+    }
+
     private void goToApp() {
         Intent intent = new Intent(getApplicationContext(), LoadDataActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 
-    private void comprar(){
 
-        Bundle buyIntentBundle = null;
-        try {
-            buyIntentBundle = mService.getBuyIntent(3, getPackageName(),
-                        "android.test.cancelled", "inapp", "bGoa+V7g/yqDXvKRqq+JTFn4uQZbPiQJo4pf9RzJ");
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        int reponse = buyIntentBundle.getInt("RESPONSE_CODE");
-        if (reponse == 0){
-            PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
-            try {
-                startIntentSenderForResult(pendingIntent.getIntentSender(),
-                        1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
-                        Integer.valueOf(0));
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
-            }
-        }
-        if (reponse == 7){
-            Toast.makeText(this, "El articulo ya esta comprado", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     void complain(String message) {
         //Log.e(TAG, "**** TrivialDrive Error: " + message);
@@ -213,38 +197,33 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
         bld.create().show();
     }
 
-    private void checkItems(){
-        ArrayList<String> skuList = new ArrayList<String> ();
-        skuList.add("unlock_videos");
-        Bundle querySkus = new Bundle();
-        querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
 
-        try {
-            Bundle skuDetails = mService.getSkuDetails(3, getPackageName(), "inapp", querySkus);
-
-            int response = skuDetails.getInt("RESPONSE_CODE");
-            if (response == 0) {
-                ArrayList<String> responseList
-                        = skuDetails.getStringArrayList("DETAILS_LIST");
-
-                for (String thisResponse : responseList) {
-                    JSONObject object = new JSONObject(thisResponse);
-                    String sku = object.getString("productId");
-                    String price = object.getString("price");
-                    //Log.d(TAG, sku + "  " + price);
-                    //Log.d(TAG, object.toString());
-                }
-            }
-
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void receivedBroadcast() {
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mHelper != null){
+            try {
+                mHelper.dispose();
+            } catch (IabHelper.IabAsyncInProgressException e) {
+                e.printStackTrace();
+            }
+        }
+        mHelper = null;
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        boolean isAvailable = false;
+        if (networkInfo != null && networkInfo.isConnected()){
+            isAvailable = true;
+        }
+        return isAvailable;
     }
 }
