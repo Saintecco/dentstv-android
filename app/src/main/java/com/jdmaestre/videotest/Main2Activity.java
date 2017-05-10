@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.support.v4.widget.DrawerLayout;
 
@@ -34,8 +36,6 @@ public class Main2Activity extends Activity
             Intent intent = new Intent(getApplication(), LoadDataActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-        }else{
-            //Toast.makeText(getApplicationContext(), String.valueOf(videoDataModel.getVideoInfos().size()),Toast.LENGTH_SHORT).show();
         }
 
         super.onCreate(savedInstanceState);
@@ -65,6 +65,13 @@ public class Main2Activity extends Activity
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.global, menu);
+        return true;
+    }
+
+    @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         String category = videoDataModel.getSectionsList().get(position);
@@ -73,9 +80,7 @@ public class Main2Activity extends Activity
         fragmentManager.beginTransaction()
                 .replace(R.id.container, VideoListFragment.newInstance(category, ""))
                 .commit();
-        switch (position){
 
-        }
     }
 
     public void onSectionAttached(int number) {
@@ -96,13 +101,6 @@ public class Main2Activity extends Activity
     public void onBackPressed() {
         super.onBackPressed();
         finish();
-    }
-
-    public void restoreActionBar() {
-        ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
     }
 
 

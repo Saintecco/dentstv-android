@@ -12,6 +12,9 @@ import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -55,6 +58,7 @@ public class VideoListFragment extends Fragment {
     private GridView videosInfo_GridLLayout;
     ArrayList<VideoInfo> videosDataAdapter;
     ArrayList<VideoInfo> videos;
+    EditText searchEditText;
 
     VideosAdapter videosAdapter = new VideosAdapter();
 
@@ -87,16 +91,16 @@ public class VideoListFragment extends Fragment {
             category = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
-
+        setHasOptionsMenu(true);
 
         videos = new ArrayList<VideoInfo>();
         videosDataAdapter = new ArrayList<VideoInfo>();
         for (int n=0; n<videoDataModel.getVideoInfos().size(); n++){
-            if (videoDataModel.getVideoInfos().get(n).getCategory().equals(category)){
-                videos.add(videoDataModel.getVideoInfos().get(n));
+            if (videoDataModel.getVideoInfos().get(n).getCategory() != null) {
+                if (videoDataModel.getVideoInfos().get(n).getCategory().equals(category)) {
+                    videos.add(videoDataModel.getVideoInfos().get(n));
+                }
             }
-
             if (videoDataModel.getVideoInfos().get(n).getCategory_2() != null){
                 if (videoDataModel.getVideoInfos().get(n).getCategory_2().equals(category)){
                     videos.add(videoDataModel.getVideoInfos().get(n));
@@ -116,7 +120,7 @@ public class VideoListFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_video_list, container, false);
 
-        final EditText searchEditText = (EditText) view.findViewById(R.id.searchVideo_EditText);
+        searchEditText = (EditText) view.findViewById(R.id.searchVideo_EditText);
 
 
         videosInfo_GridLLayout = (GridView) view.findViewById(R.id.videosInfo_gridLayout);
@@ -155,8 +159,7 @@ public class VideoListFragment extends Fragment {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        int width = displayMetrics.widthPixels;
+        int width = videosInfo_GridLLayout.getWidth();
         Double horizontalSpacing = convertDpToPixel(8.0, getActivity());
         int horizontalspacingINT = horizontalSpacing.intValue();
 
@@ -166,7 +169,7 @@ public class VideoListFragment extends Fragment {
             videosInfo_GridLLayout.setColumnWidth(width/2 - horizontalspacingINT/2);
             videosInfo_GridLLayout.setHorizontalSpacing(horizontalspacingINT-2);
         }else{
-            videosInfo_GridLLayout.setColumnWidth(width);
+            videosInfo_GridLLayout.setColumnWidth(displayMetrics.widthPixels);
         }
 
 
@@ -183,14 +186,23 @@ public class VideoListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        /*if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
+    public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
+        // Do something that differs the Activity's menu here
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_search){
+            if (searchEditText.getVisibility() == View.GONE){
+                searchEditText.setVisibility(View.VISIBLE);
+            }else{
+                searchEditText.setVisibility(View.GONE);
+            }
+
+            return true;
+        }
+        return true;
     }
 
     @Override
@@ -231,11 +243,9 @@ public class VideoListFragment extends Fragment {
             videoName = (TextView) videoInfoView.findViewById(R.id.videoName_textView);
             playButton = (ImageView) videoInfoView.findViewById(R.id.playVideoButton);
 
-            if (video.getImage() != null){
-                Picasso.with(getActivity()).load(video.getImage()).into(videoPreviewImage);
-            }else{
-                Picasso.with(getActivity()).load("https://firebasestorage.googleapis.com/v0/b/dentstv-b5c20.appspot.com/o/crop.png?alt=media&token=f0e01a49-8ebe-4b2c-af67-6686fc792939").into(videoPreviewImage);
-            }
+                Picasso.with(getActivity()).load(video.getImage()).placeholder(R.drawable.default_preview).
+                        error(R.drawable.default_preview).into(videoPreviewImage);
+
 
             videoName.setText(video.getName());
 

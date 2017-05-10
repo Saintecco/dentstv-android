@@ -3,6 +3,8 @@
     <color name="colorPrimary">#1C212D</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorWhite">#ffffff</color>
+
     <color name="colorAppYellow">#FFB801</color>
+    <color name="colorPrimaryBackground">#292f3d</color>
 </resources>

@@ -11,10 +11,12 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
+import android.widget.ProgressBar;
 import android.widget.VideoView;
 
 public class VideoViewActivity extends Activity {
@@ -31,6 +33,7 @@ public class VideoViewActivity extends Activity {
 
     FrameLayout thisLayout;
     ProgressDialog progDailog;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,7 @@ public class VideoViewActivity extends Activity {
 
         videoView = (VideoView) findViewById(R.id.videoViewTest);
         thisLayout = (FrameLayout) findViewById(R.id.activity_main);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
         videoViewCustom = new VideoViewCustom(this);
 
         thisLayout.addView(videoViewCustom);
@@ -119,14 +123,16 @@ public class VideoViewActivity extends Activity {
 
     private void startWaitingDialog(){
         if (isWaitingDialogOnScreen == false){
-            progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
+           // progDailog = ProgressDialog.show(this, "Please wait ...", "Retrieving data ...", true);
             isWaitingDialogOnScreen = true;
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
 
     private void stopWaitingDialog(){
 
-        progDailog.dismiss();
+        //progDailog.dismiss();
+        progressBar.setVisibility(View.INVISIBLE);
         isWaitingDialogOnScreen = false;
 
     }

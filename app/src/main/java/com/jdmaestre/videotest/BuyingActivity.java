@@ -17,6 +17,7 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.vending.billing.IInAppBillingService;
@@ -42,6 +43,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
     IabBroadcastReceiver mBroadcastReceiver;
 
     Button buySuscriptionButton;
+    TextView termsOfUse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +51,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
         setContentView(R.layout.activity_buying);
 
         buySuscriptionButton = (Button) findViewById(R.id.buySuscriptionButton);
-
+        termsOfUse = (TextView) findViewById(R.id.termsOfUseLabel);
 
         String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgRl230zd6MYQOJwRZeMDV9J01dlbJhdyObvppFhvF3kw9OsCiV3aW7u1QEWL4XLgmZqi8InOO0h+wxb9Muxwgcw4LinS3T0wtjs7XVlGJhaBvr/TOfUR+CsURJXSzYQo26ZtN52yZm+/DPMafqcnvSlW3csHwzL9eCmyOpo9mOXlHq/rXTD4W0qWbRXr1KijmcMs8FArSlFsu11yIF1lTOHK1TWu0Yt1XQ/AJ5tMBECEH+6pXdggPnOUvhVLaWA9y1tYAi9Hs0YoGSvNjGTe7tFrBHKRcHth6uuJX7ki497RH5BB70oOOtBmXfLQ486uW2WPQ9PlpSP45EsvbQW5BwIDAQAB";
 
@@ -59,42 +61,45 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
         // enable debug logging (for a production application, you should set this to false).
         mHelper.enableDebugLogging(false);
 
-        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                if (!result.isSuccess()) {
-                    // Oh no, there was a problem.
-                    //Log.d(TAG, "Problem setting up In-app Billing: " + result);
-                }else{
-                    // Hooray, IAB is fully set up!
-                    //Log.d(TAG, "Succes In-app Billing: " + result);
+        if (isNetworkAvailable()){
+            mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+                @Override
+                public void onIabSetupFinished(IabResult result) {
+                    if (!result.isSuccess()) {
+                        // Oh no, there was a problem.
+                        //Log.d(TAG, "Problem setting up In-app Billing: " + result);
+                        Toast.makeText(getApplicationContext(), "Helper no configurado", Toast.LENGTH_LONG).show();
+                    }else{
+                        // Hooray, IAB is fully set up!
+                        //Log.d(TAG, "Succes In-app Billing: " + result);
 
-                    // Important: Dynamically register for broadcast messages about updated purchases.
-                    // We register the receiver here instead of as a <receiver> in the Manifest
-                    // because we always call getPurchases() at startup, so therefore we can ignore
-                    // any broadcasts sent while the app isn't running.
-                    // Note: registering this listener in an Activity is a bad idea, but is done here
-                    // because this is a SAMPLE. Regardless, the receiver must be registered after
-                    // IabHelper is setup, but before first call to getPurchases().
-                    mBroadcastReceiver = new IabBroadcastReceiver(BuyingActivity.this);
-                    IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
-                    registerReceiver(mBroadcastReceiver, broadcastFilter);
+                        // Important: Dynamically register for broadcast messages about updated purchases.
+                        // We register the receiver here instead of as a <receiver> in the Manifest
+                        // because we always call getPurchases() at startup, so therefore we can ignore
+                        // any broadcasts sent while the app isn't running.
+                        // Note: registering this listener in an Activity is a bad idea, but is done here
+                        // because this is a SAMPLE. Regardless, the receiver must be registered after
+                        // IabHelper is setup, but before first call to getPurchases().
+                        //mBroadcastReceiver = new IabBroadcastReceiver(BuyingActivity.this);
+                        //IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                        //registerReceiver(mBroadcastReceiver, broadcastFilter);
 
-                    // IAB is fully set up. Now, let's get an inventory of stuff we own.
-                    //Log.d(TAG, "Setup successful. Querying inventory.");
-                    try {
-                        ArrayList<String> skuList = new ArrayList<String> ();
-                        skuList.add("unlock_videos");
-                        mHelper.queryInventoryAsync(true, null ,skuList, mGotInventoryListener);
-                    } catch (IabHelper.IabAsyncInProgressException e) {
-                        complain("Error querying inventory. Another async operation in progress.");
+                        // IAB is fully set up. Now, let's get an inventory of stuff we own.
+                        //Log.d(TAG, "Setup successful. Querying inventory.");
+                        try {
+                            ArrayList<String> skuList = new ArrayList<String> ();
+                            skuList.add("unlock_videos");
+                            mHelper.queryInventoryAsync(true, null ,skuList, mGotInventoryListener);
+                        } catch (IabHelper.IabAsyncInProgressException e) {
+                            complain("Error querying inventory. Another async operation in progress.");
+                        }
+
                     }
-
                 }
-            }
-        });
-
-
+            });
+        }else{
+            Toast.makeText(getApplicationContext(), "No esta conectado a internet", Toast.LENGTH_LONG).show();
+        }
 
         buySuscriptionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,6 +107,14 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 if (mHelper != null){
                     comprarHelper();
                 }
+            }
+        });
+
+        termsOfUse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), WebActivity.class);
+                startActivity(intent);
             }
         });
 
