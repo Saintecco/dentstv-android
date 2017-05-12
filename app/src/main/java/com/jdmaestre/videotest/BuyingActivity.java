@@ -37,6 +37,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
 
     public static final String TAG = BuyingActivity.class.getSimpleName();
     private static final String SKU_VIDEOS = "unlock_videos";
+    private static final String SKU_TEST = "test_suscription";
     IInAppBillingService mService;
     IabHelper mHelper;
     // Provides purchase notification while this app is running
@@ -89,7 +90,8 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                         try {
                             ArrayList<String> skuList = new ArrayList<String> ();
                             skuList.add("unlock_videos");
-                            mHelper.queryInventoryAsync(true, null ,skuList, mGotInventoryListener);
+                            mHelper.queryInventoryAsync(mGotInventoryListener);
+                            //mHelper.queryInventoryAsync(true, null ,skuList, mGotInventoryListener);
                         } catch (IabHelper.IabAsyncInProgressException e) {
                             complain("Error querying inventory. Another async operation in progress.");
                         }
@@ -135,12 +137,23 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 return;
             }
 
-            Purchase premiumPurchase = inventory.getPurchase("unlock_videos");
+
+            Purchase premiumPurchase = inventory.getPurchase("test_suscription");
+            //Log.d(TAG, premiumPurchase.getOriginalJson());
+            //Log.d(TAG,"token: " + premiumPurchase.getToken());
 
             if (premiumPurchase != null){
-                Toast.makeText(getApplicationContext(),String.valueOf(premiumPurchase.getPurchaseState()) ,Toast.LENGTH_LONG).show();
-                goToApp();
+                Toast.makeText(getApplicationContext(),"Purchase State: " + String.valueOf(premiumPurchase.getPurchaseState()) ,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "OrderID: "+premiumPurchase.getOrderId(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Package Name: "+premiumPurchase.getPackageName(), Toast.LENGTH_SHORT).show();
+                if (premiumPurchase.getPurchaseState() == 0){
+                    goToApp();
+                }
+            }else{
+                Toast.makeText(getApplicationContext(), "No posee la suscripcion premium", Toast.LENGTH_SHORT).show();
+
             }
+
 
         }
     };
@@ -149,7 +162,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
 
     private void comprarHelper(){
         try {
-            mHelper.launchPurchaseFlow(this, SKU_VIDEOS, 10001,
+            mHelper.launchSubscriptionPurchaseFlow(this, SKU_TEST, 10001,
                     mPurchaseFinishedListener, "compra desde la app");
         } catch (IabHelper.IabAsyncInProgressException e) {
             e.printStackTrace();
@@ -165,7 +178,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 return;
             }
 
-            if (purchase.getSku().equals(SKU_VIDEOS)) {
+            if (purchase.getSku().equals(SKU_TEST)) {
                 // consume the gas and update the UI
                 goToApp();
                 Toast.makeText(getApplicationContext(), "Compra realizadad con exito", Toast.LENGTH_LONG).show();

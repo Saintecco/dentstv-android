@@ -64,12 +64,6 @@ public class Main2Activity extends Activity
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.global, menu);
-        return true;
-    }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {

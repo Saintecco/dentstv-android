@@ -188,7 +188,7 @@ public class VideoListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
         // Do something that differs the Activity's menu here
-        super.onCreateOptionsMenu(menu, inflater);
+        //super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
