@@ -1,8 +1,10 @@
 package com.jdmaestre.videotest;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.MediaPlayer;
@@ -44,62 +46,64 @@ public class VideoViewActivity extends Activity {
 
         videoLink = getIntent().getStringExtra("videoLink");
         if (videoLink == null){
-            videoLink = "https://archive.org/download/popeye_patriotic_popeye/popeye_patriotic_popeye_512kb.mp4";
+            alert("Oops!", "No fue posible encontrar el video que esta buscando.");
+        }else{
+            videoView = (VideoView) findViewById(R.id.videoViewTest);
+            thisLayout = (FrameLayout) findViewById(R.id.activity_main);
+            progressBar = (ProgressBar) findViewById(R.id.progressBar);
+            videoViewCustom = new VideoViewCustom(this);
+
+            thisLayout.addView(videoViewCustom);
+            videoViewCustom.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+
+            String vidAddress = videoLink;
+            Uri vidUri = Uri.parse(vidAddress);
+
+            videoView.setVideoURI(vidUri);
+            videoView.start();
+            startWaitingDialog();
+
+            videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    stopWaitingDialog();
+
+                }
+            });
+
+            videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+                    progDailog.dismiss();
+                    return false;
+                }
+            });
+
+            MediaController vidControl = new MediaController(this);
+            videoView.setMediaController(vidControl);
+            vidControl.setAnchorView(videoView);
         }
-
-        videoView = (VideoView) findViewById(R.id.videoViewTest);
-        thisLayout = (FrameLayout) findViewById(R.id.activity_main);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        videoViewCustom = new VideoViewCustom(this);
-
-        thisLayout.addView(videoViewCustom);
-        videoViewCustom.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-
-
-        String vidAddress = videoLink;
-        Uri vidUri = Uri.parse(vidAddress);
-
-        videoView.setVideoURI(vidUri);
-        videoView.start();
-        startWaitingDialog();
-
-
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                stopWaitingDialog();
-
-            }
-        });
-
-        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                progDailog.dismiss();
-                return false;
-            }
-        });
-
-        MediaController vidControl = new MediaController(this);
-        videoView.setMediaController(vidControl);
-        vidControl.setAnchorView(videoView);
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        position = videoView.getCurrentPosition();
-        videoView.pause();
-
+        if (videoLink!=null) {
+            position = videoView.getCurrentPosition();
+            videoView.pause();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        videoView.seekTo(position);
-        videoView.start();
-        startWaitingDialog();
+        if (videoLink != null){
+            videoView.seekTo(position);
+            videoView.start();
+            startWaitingDialog();
+        }
     }
 
     @Override
@@ -135,5 +139,20 @@ public class VideoViewActivity extends Activity {
         progressBar.setVisibility(View.INVISIBLE);
         isWaitingDialogOnScreen = false;
 
+    }
+
+    void alert(String title ,String message) {
+
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setTitle(title);
+        bld.setMessage(message);
+        bld.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
+        //Log.d(TAG, "Showing alert dialog: " + message);
+        bld.create().show();
     }
 }
