@@ -2,6 +2,7 @@ package com.jdmaestre.videotest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -32,6 +33,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import static android.content.Context.MODE_PRIVATE;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -59,6 +62,9 @@ public class VideoListFragment extends Fragment {
     ArrayList<VideoInfo> videosDataAdapter;
     ArrayList<VideoInfo> videos;
     EditText searchEditText;
+
+    private long mCheckTime;
+    private long month2ms = 2629746000L;
 
     VideosAdapter videosAdapter = new VideosAdapter();
 
@@ -91,7 +97,15 @@ public class VideoListFragment extends Fragment {
             category = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
         setHasOptionsMenu(true);
+
+        // to verify online license
+        SharedPreferences prefs = getActivity().getSharedPreferences("pref", MODE_PRIVATE);
+        long checkTime = prefs.getLong("check", 0);
+        if (checkTime != 0){
+            mCheckTime = checkTime;
+        }
 
         videos = new ArrayList<VideoInfo>();
         videosDataAdapter = new ArrayList<VideoInfo>();
@@ -186,9 +200,11 @@ public class VideoListFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
-        // Do something that differs the Activity's menu here
-        //super.onCreateOptionsMenu(menu, inflater);
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (menu.size()>1){
+            menu.getItem(1).setVisible(false);
+        }
     }
 
     @Override
@@ -260,18 +276,35 @@ public class VideoListFragment extends Fragment {
             videoName.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(getActivity(), VideoViewActivity.class);
-                    intent.putExtra("videoLink", video.getLink());
-                    startActivity(intent);
+                    if (mCheckTime != 0 && mCheckTime + month2ms >= System.currentTimeMillis()){
+                        Intent intent = new Intent(getActivity(), VideoViewActivity.class);
+                        intent.putExtra("videoLink", video.getLink());
+                        startActivity(intent);
+                    }else{
+                        Toast.makeText(getActivity(),"Hace mucho no revisamos su licencia online, estamos verificando.",
+                                Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(getActivity(), BuyingActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+
                 }
             });
 
             videoPreviewImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(getActivity(), VideoViewActivity.class);
-                    intent.putExtra("videoLink", video.getLink());
-                    startActivity(intent);
+                    if (mCheckTime != 0 && mCheckTime + month2ms >= System.currentTimeMillis()){
+                        Intent intent = new Intent(getActivity(), VideoViewActivity.class);
+                        intent.putExtra("videoLink", video.getLink());
+                        startActivity(intent);
+                    }else{
+                        Toast.makeText(getActivity(),"Hace mucho no verificamos su licencia online, estamos verificando.",
+                                Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(getActivity(), BuyingActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
                 }
             });
 

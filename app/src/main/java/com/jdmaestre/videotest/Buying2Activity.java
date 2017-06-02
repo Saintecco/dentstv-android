@@ -64,6 +64,7 @@ public class Buying2Activity extends Activity {
             mService = IInAppBillingService.Stub.asInterface(service);
             //Toast.makeText(getApplicationContext(), "Test", Toast.LENGTH_SHORT).show();
 
+
             try {
                 Bundle activeSubs = mService.getPurchases(3, "com.dents.dentstv",
                         "subs", null);

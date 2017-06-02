@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -69,7 +70,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                     if (!result.isSuccess()) {
                         // Oh no, there was a problem.
                         //Log.d(TAG, "Problem setting up In-app Billing: " + result);
-                        Toast.makeText(getApplicationContext(), "Helper no configurado", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "No fue posible conectar con el servicio de GooglePlay", Toast.LENGTH_LONG).show();
                     }else{
                         // Hooray, IAB is fully set up!
                         //Log.d(TAG, "Succes In-app Billing: " + result);
@@ -91,6 +92,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                             ArrayList<String> skuList = new ArrayList<String> ();
                             skuList.add("unlock_videos");
                             mHelper.queryInventoryAsync(mGotInventoryListener);
+
                             //mHelper.queryInventoryAsync(true, null ,skuList, mGotInventoryListener);
                         } catch (IabHelper.IabAsyncInProgressException e) {
                             complain("Error querying inventory. Another async operation in progress.");
@@ -117,6 +119,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(), WebActivity.class);
                 startActivity(intent);
+
             }
         });
 
@@ -138,7 +141,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
             }
 
 
-            Purchase premiumPurchase = inventory.getPurchase("test_suscription");
+            Purchase premiumPurchase = inventory.getPurchase(SKU_VIDEOS);
             //Log.d(TAG, premiumPurchase.getOriginalJson());
             //Log.d(TAG,"token: " + premiumPurchase.getToken());
 
@@ -147,6 +150,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 Toast.makeText(getApplicationContext(), "OrderID: "+premiumPurchase.getOrderId(), Toast.LENGTH_SHORT).show();
                 Toast.makeText(getApplicationContext(), "Package Name: "+premiumPurchase.getPackageName(), Toast.LENGTH_SHORT).show();
                 if (premiumPurchase.getPurchaseState() == 0){
+
                     goToApp();
                 }
             }else{
@@ -162,7 +166,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
 
     private void comprarHelper(){
         try {
-            mHelper.launchSubscriptionPurchaseFlow(this, SKU_TEST, 10001,
+            mHelper.launchSubscriptionPurchaseFlow(this, SKU_VIDEOS, 10001,
                     mPurchaseFinishedListener, "compra desde la app");
         } catch (IabHelper.IabAsyncInProgressException e) {
             e.printStackTrace();
@@ -178,7 +182,7 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
                 return;
             }
 
-            if (purchase.getSku().equals(SKU_TEST)) {
+            if (purchase.getSku().equals(SKU_VIDEOS)) {
                 // consume the gas and update the UI
                 goToApp();
                 Toast.makeText(getApplicationContext(), "Compra realizadad con exito", Toast.LENGTH_LONG).show();
@@ -203,6 +207,9 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
     }
 
     private void goToApp() {
+        SharedPreferences.Editor editor = getSharedPreferences("pref", MODE_PRIVATE).edit();
+        editor.putLong("check",System.currentTimeMillis());
+        editor.commit();
         Intent intent = new Intent(getApplicationContext(), LoadDataActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
