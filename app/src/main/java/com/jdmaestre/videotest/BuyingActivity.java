@@ -146,9 +146,9 @@ public class BuyingActivity extends Activity implements IabBroadcastReceiver.Iab
             //Log.d(TAG,"token: " + premiumPurchase.getToken());
 
             if (premiumPurchase != null){
-                Toast.makeText(getApplicationContext(),"Purchase State: " + String.valueOf(premiumPurchase.getPurchaseState()) ,Toast.LENGTH_SHORT).show();
-                Toast.makeText(getApplicationContext(), "OrderID: "+premiumPurchase.getOrderId(), Toast.LENGTH_SHORT).show();
-                Toast.makeText(getApplicationContext(), "Package Name: "+premiumPurchase.getPackageName(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),"Purchase State: " + String.valueOf(premiumPurchase.getPurchaseState()) ,Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "OrderID: "+premiumPurchase.getOrderId(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Package Name: "+premiumPurchase.getPackageName(), Toast.LENGTH_SHORT).show();
                 if (premiumPurchase.getPurchaseState() == 0){
 
                     goToApp();
